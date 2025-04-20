@@ -107,24 +107,24 @@ def verify_aadhaar(file_bytes: bytes, content_type: str):
                     aadhaar_data["aadhaar_number"] = f"XXXX XXXX {aadhaar_data['aadhaar_number'][-4:]}"
                     return aadhaar_data
 
-        # Fallback to OCR
+
         text = extract_text_from_file(file_bytes, content_type)
         print("OCR Extracted Text:", text)
 
-        # Aadhaar number: 12 digits pattern (e.g., 1234 5678 9012)
+
         aadhaar_number_match = re.search(r'\b\d{4}\s\d{4}\s\d{4}\b', text)
         aadhaar_number = aadhaar_number_match.group().replace(" ", "") if aadhaar_number_match else None
 
-        # DOB: Match DD-MM-YYYY, DD/MM/YYYY, DD MM YYYY, or YYYY-MM-DD
+
         dob_match = re.search(r'\b(?:\d{2}[/-]\d{2}[/-]\d{4}|\d{2}\s\d{2}\s\d{4}|\d{4}-\d{2}-\d{2})\b', text)
         dob = dob_match.group() if dob_match else None
 
-        # Name: Prioritize name after DOB or Male, allow 2-3 words
+
         lines = text.split('\n')
         name = None
         for i, line in enumerate(lines):
             if re.search(r'(DOB|Male)', line, re.IGNORECASE):
-                # Look at the previous or next 2 lines for the name
+
                 for j in range(max(0, i-2), min(len(lines), i+3)):
                     name_match = re.search(r'\b([A-Za-z]{2,}\s+[A-Za-z]{2,}(?:\s+[A-Za-z]{2,})?)\b', lines[j], re.IGNORECASE)
                     if name_match and not re.search(r'(Government|Aadhaar|India|Male|DOB|BNA|BUG)', lines[j], re.IGNORECASE):
@@ -133,7 +133,7 @@ def verify_aadhaar(file_bytes: bytes, content_type: str):
                 if name:
                     break
 
-        # Fallback: Explicitly match Harsh Harendra Rana or similar
+
         if not name:
             name_match = re.search(r'\b(Harsh\s+Harendra\s+Rana|[A-Za-z]{2,}\s+[A-Za-z]{2,}(?:\s+[A-Za-z]{2,})?)\b', text, re.IGNORECASE)
             if name_match and not re.search(r'(Government|Aadhaar|India|Male|DOB|BNA|BUG)', name_match.group(1), re.IGNORECASE):

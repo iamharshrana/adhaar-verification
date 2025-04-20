@@ -1,4 +1,3 @@
-# Later if we want to save uploaded files
 import uuid
 import os
 
