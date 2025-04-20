@@ -8,9 +8,6 @@ from pyzbar.pyzbar import decode as pyzbar_decode
 from pyaadhaar.decode import AadhaarSecureQr
 
 def preprocess_image(image: Image.Image) -> Image.Image:
-    """
-    Preprocess image to improve OCR accuracy.
-    """
     image = image.convert("L")
     enhancer = ImageEnhance.Contrast(image)
     image = enhancer.enhance(2)
@@ -20,9 +17,6 @@ def preprocess_image(image: Image.Image) -> Image.Image:
     return image
 
 def extract_text_from_file(file_bytes: bytes, content_type: str) -> str:
-    """
-    Extract text from an image or PDF using OCR (pytesseract).
-    """
     text = ""
     if content_type == "application/pdf":
         images = convert_from_bytes(file_bytes)
@@ -38,9 +32,6 @@ def extract_text_from_file(file_bytes: bytes, content_type: str) -> str:
     return text
 
 def extract_qr_code(image: Image.Image) -> str:
-    """
-    Extract QR code data from an image using pyzbar.
-    """
     try:
         print("Attempting QR code extraction...")
         qr_image = preprocess_image(image)
@@ -57,9 +48,6 @@ def extract_qr_code(image: Image.Image) -> str:
         return None
 
 def verify_aadhaar(file_bytes: bytes, content_type: str):
-    """
-    Verify Aadhaar details by decoding QR code or using OCR.
-    """
     aadhaar_data = {
         "aadhaar_number": None,
         "dob": None,
@@ -131,9 +119,25 @@ def verify_aadhaar(file_bytes: bytes, content_type: str):
         dob_match = re.search(r'\b(?:\d{2}[/-]\d{2}[/-]\d{4}|\d{2}\s\d{2}\s\d{4}|\d{4}-\d{2}-\d{2})\b', text)
         dob = dob_match.group() if dob_match else None
 
-        # Name: Match multi-word name (2-3 words, near DOB or Male)
-        name_match = re.search(r'(?:(?:DOB|Male).*\n.*\b([A-Za-z]{2,}\s+[A-Za-z]{2,}(?:\s+[A-Za-z]{2,})?)\b)|(?:\b([A-Za-z]{2,}\s+[A-Za-z]{2,}(?:\s+[A-Za-z]{2,})?)\b)', text, re.IGNORECASE)
-        name = (name_match.group(1) or name_match.group(2)).strip() if name_match else None
+        # Name: Prioritize name after DOB or Male, allow 2-3 words
+        lines = text.split('\n')
+        name = None
+        for i, line in enumerate(lines):
+            if re.search(r'(DOB|Male)', line, re.IGNORECASE):
+                # Look at the previous or next 2 lines for the name
+                for j in range(max(0, i-1), min(len(lines), i+3)):
+                    name_match = re.search(r'\b([A-Za-z]{2,}\s+[A-Za-z]{2,}(?:\s+[A-Za-z]{2,})?)\b', lines[j], re.IGNORECASE)
+                    if name_match and not re.search(r'(Government|Aadhaar|India|Male|DOB)', lines[j], re.IGNORECASE):
+                        name = name_match.group(1).strip()
+                        break
+                if name:
+                    break
+
+        # Fallback: Search entire text if no name found near DOB/Male
+        if not name:
+            name_match = re.search(r'\b([A-Za-z]{2,}\s+[A-Za-z]{2,}(?:\s+[A-Za-z]{2,})?)\b', text, re.IGNORECASE)
+            if name_match and not re.search(r'(Government|Aadhaar|India|Male|DOB)', name_match.group(1), re.IGNORECASE):
+                name = name_match.group(1).strip()
 
         if aadhaar_number and re.match(r'^\d{12}$', aadhaar_number):
             aadhaar_data["aadhaar_number"] = aadhaar_number
@@ -159,7 +163,6 @@ def verify_aadhaar(file_bytes: bytes, content_type: str):
         if not aadhaar_data["valid"]:
             aadhaar_data["error"] = "Could not extract valid Aadhaar details"
 
-        # Mask Aadhaar number
         if aadhaar_data["aadhaar_number"]:
             aadhaar_data["aadhaar_number"] = f"XXXX XXXX {aadhaar_data['aadhaar_number'][-4:]}"
 
