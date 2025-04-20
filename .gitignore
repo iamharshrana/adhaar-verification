@@ -1,0 +1,69 @@
+# Python virtual environment
+venv/
+env/
+.env/
+virtualenv/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Dependency directories
+.pip_cache/
+pip-wheel-metadata/
+*.egg-info/
+dist/
+build/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Local environment configuration
+.env
+*.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs and temporary files
+*.log
+*.log.*
+*.tmp
+temp/
+tmp/
+
+# Testing and coverage files
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+.pytest_cache/
+htmlcov/
+
+# Vercel-specific files
+.vercel/
+.vercelignore
+
+# Sensitive files (e.g., Aadhaar images used for testing)
+*.jpg
+*.jpeg
+*.png
+*.pdf
+test_files/
+data/
+images/
+
+# Miscellaneous
+*.bak
+*.swp
+*~
+*.lock
