@@ -6,3 +6,4 @@ pdf2image
 pyzbar
 pyaadhaar==2.0.2
 python-multipart
+opencv-python

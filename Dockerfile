@@ -1,12 +1,13 @@
 # Use official Python slim image
 FROM python:3.12-slim
 
-# Install system dependencies for tesseract and poppler
+# Install system dependencies for tesseract, poppler, and zbar
 RUN apt-get update && apt-get install -y \
     tesseract-ocr \
     libtesseract-dev \
     poppler-utils \
     libzbar0 \
+    libopencv-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory
